@@ -29,4 +29,4 @@ echo "Done .."
 sleep 2
 mkdir /etc/Sslablk
 cd /etc/Sslablk
-apt-get update -y; apt-get upgrade -y; wget https://raw.githubusercontent.com/silentkiller365/SSH-Panel/main/install.sh; chmod 777 install.sh; bash install.
+apt-get update -y; apt-get upgrade -y; wget https://raw.githubusercontent.com/silentkiller365/SSH-Panel/main/install.sh; chmod 777 install.sh; bash install.sh
