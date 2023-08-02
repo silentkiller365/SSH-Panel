@@ -21,7 +21,7 @@ apt-get update -y; apt-get upgrade -y; wget https://raw.githubusercontent.com/si
 
 
 # Credits
-*noobconner21  ORIGINAL SCRIPT
+*@noobconner21  ORIGINAL SCRIPT
 
 #  License
 
