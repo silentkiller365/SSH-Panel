@@ -1,6 +1,6 @@
- # SSLaB SSH Manager
+ # SILENT SSH Manager
 
-By Project SSLab LK™
+By █▓▒▒░░░SILENTVPNHUB░░░▒▒▓█
 
 An unencrypted version.. Feel Free to modified...
 
@@ -10,7 +10,7 @@ An unencrypted version.. Feel Free to modified...
 
 01. Install Script
 ```
-apt-get update -y; apt-get upgrade -y; wget https://raw.githubusercontent.com/noobconner21/SSH-Panel/main/setup.sh; chmod 777 setup.sh; bash setup.sh
+apt-get update -y; apt-get upgrade -y; wget https://raw.githubusercontent.com/silentkiller365/SSH-Panel/main/setup.sh; chmod 777 setup.sh; bash setup.sh
 ```
 
 # Requirements
@@ -21,9 +21,8 @@ apt-get update -y; apt-get upgrade -y; wget https://raw.githubusercontent.com/no
 
 
 # Credits
-* ryanc aka @BlurryFlurry for help me out
-* PandaEhi Team DITO & PANDA to giving this idea
+*noobconner21  ORIGINAL SCRIPT
 
 #  License
 
-[![License](https://www.gnu.org/graphics/gplv3-or-later.png)](LICENSE)
+RELEASE WITH MIT LICENSE
