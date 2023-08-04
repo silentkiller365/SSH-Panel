@@ -2,17 +2,17 @@
 # Credits: SSH Tunnel Auto Script - By Project SSLaB LK 🇱🇰
 # Version : 2.2.0
 
-
-
-#public ip
-
+# Public IP
 pub_ip=$(wget -qO- https://ipecho.net/plain ; echo)
 
+apt update
+apt upgrade -y
 
+# Install required packages
 apt install figlet lolcat -y
-
 apt install screenfetch -y
-clear
+apt install stunnel4 squid -y
+
 clear
 echo -e "  @@@@@@   @@@  @@@       @@@@@@@@  @@@  @@@  @@@@@@@     @@@  @@@  @@@@@@@   @@@  @@@  @@@  @@@  @@@  @@@  @@@@@@@  " | lolcat  
 echo -e " @@@@@@@   @@@  @@@       @@@@@@@@  @@@@ @@@  @@@@@@@     @@@  @@@  @@@@@@@@  @@@@ @@@  @@@  @@@  @@@  @@@  @@@@@@@@ " | lolcat  
@@ -24,22 +24,16 @@ echo -e "      !:!  !!:  !!:       !!:       !!:  !!!    !!:       :!:  !!:  !!:
 echo -e "     !:!   :!:   :!:      :!:       :!:  !:!    :!:        ::!!:!   :!:       :!:  !:!  :!:  !:!  :!:  !:!  :!:  !:! " | lolcat  
 echo -e " :::: ::    ::   :: ::::   :: ::::   ::   ::     ::         ::::     ::        ::   ::  ::   :::  ::::: ::   :: :::: " | lolcat  
 echo -e " :: : :    :    : :: : :  : :: ::   ::    :      :           :       :        ::    :    :   : :   : :  :   :: : ::  " | lolcat 
-#figlet -c "SILENT - SSH" | lolcat && figlet -f digital -c "MADE WITH LOVE BY █▓▒▒░░░SILENTVPNHUB░░░▒▒▓█ " | lolcat
-echo ""
+
 echo ""
 echo "--- SSH Tunnel Auto Script ---" | lolcat
 echo ""
+echo "After this operation Stunnel / Dropbear / Squid / Badvpn Will be Installed on Your Server."
 echo ""
-echo "After this operation Stunnel / Dropbear / Squid / Badvpn Will be Install on Your Server."
-# echo "Stunnel"
-# echo "Dropbear"
-# echo "Squid"
-# echo "Badvpn will be installed on your server."
 echo ""
-echo""
 read -p "Do you want to continue? [y/n]" CONT
 if [[ ! $CONT =~ ^[Yy]$ ]]; then
-  echo "Abort.";
+  echo "Abort."
   exit 100
 fi
 
@@ -48,25 +42,9 @@ if [[ $EUID -ne 0 ]]; then
    exit 100
 fi
 
-apt-get update
-apt-get upgrade -y
-
 echo -e "\e[96mInstalling dependancies\e[0m"
 apt-get install -y libnss3* libnspr4-dev gyp ninja-build git cmake libz-dev build-essential 
 apt-get install -y pkg-config cmake-data net-tools libssl-dev dnsutils speedtest-cli psmisc
-apt-get install -y dropbear stunnel4
-
-# pubip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
-# if [ "$pubip" == "" ];then
-    # pubip=`ifconfig eth0 | awk 'NR==2 {print $2}'`
-# fi
-# if [ "$pubip" == "" ];then
-    # pubip=`ifconfig ens3 | awk 'NR==2 {print $2}'`
-# fi
-# if [ "$pubip" == "" ];then
-    # echo -e "\e[95mIncompatible Server!.\e[0m" 1>&2
-    # exit 100
-# fi
 
 echo -e "\e[96mChecking dropbear is installed\e[0m"
 FILE=/etc/default/dropbear
@@ -123,14 +101,14 @@ cat >> "$FILE2" <<EOL
 <h6 style="text-align:center;"><span style="color:#4863A0;">- 2019-2023 Copyright | SSLaB LK™ -</span></h6>
 EOL
 
-echo -e "\e[96mStarting dropdear services\e[0m"
+echo -e "\e[96mStarting dropbear services\e[0m"
 /etc/init.d/dropbear start
 
 echo -e "\e[96mChecking stunnel is installed\e[0m"
 FILE3=/etc/stunnel/stunnel.conf
 if [ -f "$FILE3" ]; then
-	cp "$FILE3" /etc/stunnel/stunnel.conf.bak
-	rm "$FILE3"
+    cp "$FILE3" /etc/stunnel/stunnel.conf.bak
+    rm "$FILE3"
 fi
 
 echo -e "\e[96mCreating stunnel config\e[0m"
@@ -142,66 +120,23 @@ socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
 
 [dropbear]
-connect = 444
 accept = 443
+connect = 444
 EOL
 
 echo -e "\e[96mCreating keys\e[0m"
 KEYFILE=/etc/stunnel/stunnel.pem
 if [ ! -f "$KEYFILE" ]; then
-	openssl genrsa -out key.pem 2048
-	openssl req -new -x509 -key key.pem -out cert.pem -days 1095 -subj "/C=AU/ST=./L=./O=./OU=./CN=./emailAddress=."
-	cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
+	openssl req -new -x509 -days 365 -nodes -out "$KEYFILE" -keyout "$KEYFILE"
 fi
 
 echo -e "\e[96mEnabling stunnel services\e[0m"
-sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
+systemctl enable stunnel4
 
 echo -e "\e[96mStarting stunnel services\e[0m"
-/etc/init.d/stunnel4 start
+systemctl start stunnel4
 
-echo -e "\e[96mCompile and installing badvpn\e[0m"
-if [ ! -d "/root/badvpn/" ] 
-then
-    sudo dpkg --configure -a
-	git clone https://github.com/ambrop72/badvpn.git /root/badvpn
-	cd /root/badvpn/
-	cmake /root/badvpn/ -DBUILD_NOTHING_BY_DEFAULT=1 -DBUILD_SERVER=1 -DBUILD_CLIENT=1 -DBUILD_UDPGW=1 -DBUILD_TUN2SOCKS=1 && make
-	make install
-fi
-
-echo -e "\e[96mChecking rc.local is exist\e[0m"
-FILE4=/etc/rc.local
-if [ -f "$FILE4" ]; then
-    cp "$FILE4" /etc/rc.local.bak
-    rm "$FILE4"
-fi
-
-echo -e "\e[96mCreating rc.local\e[0m"
-cat >> "$FILE4" <<EOL
-#!/bin/sh -e
-#
-# rc.local
-#
-# This script is executed at the end of each multiuser runlevel.
-# Make sure that the script will "exit 0" on success or any other
-# value on error.
-#
-# In order to enable or disable this script just change the execution
-# bits.
-#
-# By default this script does nothing.
-badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 999 --client-socket-sndbuf 1048576
-exit 0
-EOL
-
-echo -e "\e[96mSetting up permissions for rc.local\e[0m"
-chmod +x /etc/rc.local
-
-echo -e "\e[96mInstalling squid\e[0m"
-apt-get install -y squid
-
-echo -e "\e[96mChecking squid is installed\e[0m"
+echo -e "\e[96mConfiguring squid\e[0m"
 FILE5=/etc/squid/squid.conf
 if [ -f "$FILE5" ]; then
     cp "$FILE5" /etc/squid/squid.conf.bak
@@ -224,7 +159,7 @@ acl Safe_ports port 488
 acl Safe_ports port 591
 acl Safe_ports port 777
 acl CONNECT method CONNECT
-acl SSH dst ${pubip}
+acl SSH dst ${pub_ip}
 http_access allow SSH
 http_access allow manager localhost
 http_access deny manager
@@ -239,85 +174,13 @@ refresh_pattern -i (/cgi-bin/|\?) 0 0% 0
 refresh_pattern . 0 20% 4320
 EOL
 
-echo -e "\e[96mEnabling ssh password authentication\e[0m"
-sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-
-echo -e "\e[96mSetting up banner for ssh\e[0m"
-sed -i 's/#Banner none/Banner \/etc\/issue.net/g' /etc/ssh/sshd_config
-
 echo -e "\e[96mRestarting services. Please wait...\e[0m"
-/etc/init.d/dropbear restart
-/etc/init.d/stunnel4 restart
-service squid restart
-service ssh restart
+systemctl restart dropbear
+systemctl restart stunnel4
+systemctl restart squid
 
-# add fake shell paths to prevent interractive shell login
-echo '/bin/false' >>/etc/shells
-echo '/usr/sbin/nologin' >>/etc/shells
-echo "Done."
-sleep 1
-clear
-
-#install Panel
-cd $HOME
-mkdir /etc/Sslablk
-cd /etc/Sslablk
-#wget https://github.com/noobconner21/project1/raw/main/etc.zip
-wget https://github.com/silentkiller365/SSH-Panel/raw/main/system.zip
-unzip system
-cd /etc/Sslablk/system
-mv menu /usr/local/bin
-wget -O speedtest-cli https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
-chmod +x ChangeUser.sh
-chmod +x Adduser.sh
-chmod +x Banner.sh
-chmod +x Port.sh
-chmod +x DelUser.sh
-chmod +x Userlist.sh
-chmod +x RemoveScript.sh
-chmod +x speedtest-cli
-cd /usr/local/bin
-chmod +x menu
-cd /etc/Sslablk
-rm system.zip
-
-clear
-#figlet -c "SILENT - SSH" | lolcat && figlet -f digital -c "MADE WITH LOVE BY █▓▒▒░░░SILENTVPNHUB░░░▒▒▓█" | lolcat
-echo -e "  @@@@@@   @@@  @@@       @@@@@@@@  @@@  @@@  @@@@@@@     @@@  @@@  @@@@@@@   @@@  @@@  @@@  @@@  @@@  @@@  @@@@@@@  " | lolcat  
-echo -e " @@@@@@@   @@@  @@@       @@@@@@@@  @@@@ @@@  @@@@@@@     @@@  @@@  @@@@@@@@  @@@@ @@@  @@@  @@@  @@@  @@@  @@@@@@@@ " | lolcat  
-echo -e " !@@       @@!  @@!       @@!       @@!@!@@@    @@!       @@!  @@@  @@!  @@@  @@!@!@@@  @@!  @@@  @@!  @@@  @@!  @@@ " | lolcat  
-echo -e " !@!       !@!  !@!       !@!       !@!!@!@!    !@!       !@!  @!@  !@!  @!@  !@!!@!@!  !@!  @!@  !@!  @!@  !@   @!@ " | lolcat  
-echo -e " !!@@!!    !!@  @!!       @!!!:!    @!@ !!@!    @!!       @!@  !@!  @!@@!@!   @!@ !!@!  @!@!@!@!  @!@  !@!  @!@!@!@  " | lolcat  
-echo -e "  !!@!!!   !!!  !!!       !!!!!:    !@!  !!!    !!!       !@!  !!!  !!@!!!    !@!  !!!  !!!@!!!!  !@!  !!!  !!!@!!!! " | lolcat 
-echo -e "      !:!  !!:  !!:       !!:       !!:  !!!    !!:       :!:  !!:  !!:       !!:  !!!  !!:  !!!  !!:  !!!  !!:  !!! " | lolcat 
-echo -e "     !:!   :!:   :!:      :!:       :!:  !:!    :!:        ::!!:!   :!:       :!:  !:!  :!:  !:!  :!:  !:!  :!:  !:! " | lolcat  
-echo -e " :::: ::    ::   :: ::::   :: ::::   ::   ::     ::         ::::     ::        ::   ::  ::   :::  ::::: ::   :: :::: " | lolcat  
-echo -e " :: : :    :    : :: : :  : :: ::   ::    :      :           :       :        ::    :    :   : :   : :  :   :: : ::  " | lolcat 
-echo " "
-echo ""
-echo -e "\e[96mInstallation has been completed!!\e[0m"
-echo " "
-# echo "--------------------------- Configuration Setup Server -------------------------"
-# echo " "
-# echo "Server Information"
-# echo "   - IP address 	: ${pubip}"
-# echo "   - SSH 		: 22"
-# echo "   - Dropbear 		: 80"
-# echo "   - Stunnel 		: 443"
-# echo "   - Badvpn 		: 7300"
-# echo "   - Squid 		: 8080/3128"
-# echo " "
-echo -e "\e[95mYou can access ssh panel use (menu) command.\e[0m"
-echo ""
-echo -e "\e[95mReboot your vps before use.\e[0m"
-echo " "
-
-echo -e "\nPress Enter key to reboot system";read
-clear
+echo -e "\e[96mSSH Tunnel Setup Completed!\e[0m"
+echo -e "\e[95mYou can access SSH panel using the 'menu' command.\e[0m"
+echo -e "\e[95mReboot your VPS before use.\e[0m"
 echo -e "Thank you for using this script."
-echo ""
-echo ""
-echo -e "2019-2023 Copyright | █▓▒▒░░░SILENTVPNHUB░░░▒▒▓█" | lolcat
-rm -rf /etc/Sslablktemp
-#rm sshsetup.sh
-reboot
+echo -e "2019-2023 Copyright | █▓▒▒░░░SILENTVPNHUB░░░▒▒▓█"
